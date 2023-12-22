@@ -4,6 +4,8 @@ import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xffffff); 
@@ -79,9 +81,86 @@ loader.load('/fonts/SourceCodePro_Bold.json', function (font) {
   });
 });
 
-camera.position.z = 5;
+const particulasCount = 10000; // Número de partículas
+const posicoes = new Float32Array(particulasCount * 3); // x, y, z para cada partícula
 
-function animate() {
+for (let i = 0; i < particulasCount * 3; i++) {
+    // Posições aleatórias
+    posicoes[i] = (Math.random() - 0.5) * 50; // Ajuste o intervalo conforme necessário
+}
+
+const particulasGeometry = new THREE.BufferGeometry();
+particulasGeometry.setAttribute('position', new THREE.BufferAttribute(posicoes, 3));
+
+const cores = new Float32Array(particulasCount * 3); // R, G, B para cada partícula
+
+for (let i = 0; i < particulasCount * 3; i++) {
+    // Cores aleatórias
+    cores[i] = Math.random();
+}
+
+particulasGeometry.setAttribute('color', new THREE.BufferAttribute(cores, 3));
+
+const particulasMaterial = new THREE.PointsMaterial({
+    size: 0.03,
+    vertexColors: true
+});
+
+const sistemaParticulas = new THREE.Points(particulasGeometry, particulasMaterial);
+scene.add(sistemaParticulas);
+
+// Models
+
+const loaderModels = new GLTFLoader();
+const modelos = ['tree.glb', 'gift.glb', 'noel-hat.glb'];
+const instancias = [];
+
+// Carregamento dos modelos
+modelos.forEach((modelo) => {
+
+    loaderModels.load(`./img/${modelo}`, (gltf) => {
+
+        for (let i = 0; i < 20; i++) {
+            const instancia = gltf.scene.clone();
+
+            // Definindo propriedades aleatórias
+            const amplitudePosicao = 10; 
+            instancias.forEach((instancia) => {
+              // Define posições iniciais aleatórias dentro da amplitude definida
+              instancia.position.x = (Math.random() - 0.5) * amplitudePosicao;
+              instancia.position.y = (Math.random() - 0.5) * amplitudePosicao;
+              instancia.position.z = (Math.random() - 0.5) * amplitudePosicao;
+          });
+          
+            instancia.position.set(Math.random(), Math.random(), Math.random());
+
+            instancia.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+            const escala = Math.random() * 0.05 + 0.05;
+            instancia.scale.set(escala, escala, escala);
+            
+            // Armazenar informações adicionais para animação
+            instancia.userData = {
+                velocidade: Math.random(),
+                rotacao: new THREE.Vector3(Math.random(), Math.random(), Math.random())
+            };
+
+            instancias.push(instancia);
+            scene.add(instancia);
+        }
+    });
+});
+
+// Função de animação
+
+
+
+camera.position.z = 5;
+let tempoAnterior = 0;
+function animate(tempoAtual) {
+
+  tempoAtual *= 0.001; // converte o tempo de milissegundos para segundos
+  const deltaTime = tempoAtual - tempoAnterior; // calcula o tempo passado
+  tempoAnterior = tempoAtual; // atualiza o tempo anterior para o próximo quadro
   requestAnimationFrame(animate);
   controls.update();
   // Verificar se textMesh foi carregado
@@ -89,6 +168,24 @@ function animate() {
       textMesh.position.y += Math.sin(Date.now() * 0.001) * 0.001;
   }
 
+ 
+
+  instancias.forEach((instancia) => {
+    if (!instancia.userData.direcao) {
+        instancia.userData.direcao = new THREE.Vector3(
+            (Math.random() - 0.5) * 0.2,
+            (Math.random() - 0.5) * 0.2,
+            (Math.random() - 0.5) * 0.2
+        );
+    }
+
+    instancia.position.x += instancia.userData.direcao.x * deltaTime;
+    instancia.position.y += instancia.userData.direcao.y * deltaTime;
+    instancia.position.z += instancia.userData.direcao.z * deltaTime;
+});
+
+
+  sistemaParticulas.rotation.y += 0.01;
   renderer.render(scene, camera);
 }
 
