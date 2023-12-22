@@ -48,26 +48,42 @@ scene.add(light);
 const loader = new FontLoader();
 let textMesh; // Declarar a variável aqui
 
+const linhas = [
+  "O Salão Loha deseja",
+  "um Feliz Natal e",
+  "um excelente ano novo"
+];
+
 loader.load('/fonts/SourceCodePro_Bold.json', function (font) {
-    const textGeometry = new TextGeometry('O Salão Loha deseja um Feliz Natal e um excelente ano novo', {
-        font: font,
-        size: 1,
-        height: 0.2
-    });
+  const alturaLinha = 1.5; // Ajuste conforme necessário
+  let yOffset = 0;
 
-    textGeometry.center();
+  linhas.forEach(linha => {
+      const textGeometry = new TextGeometry(linha, {
+          font: font,
+          size: 1,
+          height: 0.2,
+          curveSegments: 12,
+          bevelEnabled: true,
+          bevelSize: 0.02,
+          bevelThickness: 0.13,
+      });
 
-    const textMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 }); // Vermelho
-    textMesh = new THREE.Mesh(textGeometry, textMaterial);
-    textMesh.position.set(-2, 0, 0); // Posicionar o texto
-    scene.add(textMesh);
+      const textMaterial = new THREE.MeshPhongMaterial({ color: 0xff0000 }); 
+      const light = new THREE.DirectionalLight(0xffffff, 1);// Vermelho
+      const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+      textMesh.position.set(-2, yOffset, 0); // Posicionar o texto
+      scene.add(textMesh);
+
+      yOffset -= alturaLinha; // Move para baixo para a próxima linha
+  });
 });
 
 camera.position.z = 5;
 
 function animate() {
   requestAnimationFrame(animate);
-
+  controls.update();
   // Verificar se textMesh foi carregado
   if (textMesh) {
       textMesh.position.y += Math.sin(Date.now() * 0.001) * 0.001;
