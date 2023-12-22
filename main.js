@@ -109,6 +109,14 @@ const particulasMaterial = new THREE.PointsMaterial({
 const sistemaParticulas = new THREE.Points(particulasGeometry, particulasMaterial);
 scene.add(sistemaParticulas);
 
+const ambientLight = new THREE.AmbientLight(0xffa07a, 0.7); // Luz ambiente em tom quente
+scene.add(ambientLight);
+
+const directionalLight = new THREE.DirectionalLight(0xffd700, 0.5); // Luz direcional dourada
+directionalLight.position.set(1, 1, 1);
+scene.add(directionalLight);
+
+
 // Models
 
 const loaderModels = new GLTFLoader();
@@ -120,7 +128,7 @@ modelos.forEach((modelo) => {
 
     loaderModels.load(`./img/${modelo}`, (gltf) => {
 
-        for (let i = 0; i < 20; i++) {
+        for (let i = 0; i < 10; i++) {
             const instancia = gltf.scene.clone();
 
             // Definindo propriedades aleatórias
@@ -135,7 +143,7 @@ modelos.forEach((modelo) => {
             instancia.position.set(Math.random(), Math.random(), Math.random());
 
             instancia.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
-            const escala = Math.random() * 0.05 + 0.05;
+            const escala = Math.random() * 0.15 + 0.1;
             instancia.scale.set(escala, escala, escala);
             
             // Armazenar informações adicionais para animação
